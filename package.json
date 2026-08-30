@@ -1,0 +1,33 @@
+{
+  "name": "soundcloud",
+  "productName": "SoundCloud",
+  "version": "1.0.0",
+  "description": "SoundCloud desktop app with Discord Rich Presence",
+  "main": "src/main.js",
+  "scripts": {
+    "start": "electron .",
+    "dist": "electron-builder",
+    "package": "electron-packager . SoundCloud --platform=win32 --arch=x64 --out=release --overwrite"
+  },
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "electron": "^32.0.0",
+    "electron-builder": "^25.0.0",
+    "electron-packager": "^17.1.2"
+  },
+  "dependencies": {
+    "@xhayper/discord-rpc": "^1.2.1"
+  },
+  "build": {
+    "appId": "com.local.soundcloud",
+    "productName": "SoundCloud",
+    "files": [
+      "src/**/*",
+      "assets/**/*"
+    ],
+    "win": {
+      "target": "nsis"
+    }
+  }
+}
