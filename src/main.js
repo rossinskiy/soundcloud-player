@@ -7,16 +7,7 @@ let mainWindow;
 
 function createWindow() {
   const scSession = session.fromPartition('persist:soundcloud');
-  enableAdBlocking(scSession);
-
-  if (process.env.SC_DEBUG_NET) {
-    scSession.webRequest.onBeforeRequest((details, callback) => {
-      if (/ad|sponsor|promo|interstitial|adswizz|dax/i.test(details.url)) {
-        console.log('[net]', details.url);
-      }
-      callback({});
-    });
-  }
+  enableAdBlocking(scSession, { debug: !!process.env.SC_DEBUG_NET });
 
   mainWindow = new BrowserWindow({
     width: 1280,

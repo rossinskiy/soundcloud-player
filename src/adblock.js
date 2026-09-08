@@ -1,5 +1,10 @@
 // Blocks SoundCloud's ad/tracking network requests (audio + video ads and
 // the tracking beacons that go with them) at the request level.
+//
+// IMPORTANT: Electron's session.webRequest only supports ONE onBeforeRequest
+// listener per session — registering a second one (e.g. for debug logging)
+// silently replaces this one instead of adding to it. Any extra logic must
+// live inside the single handler below, not in a second onBeforeRequest call.
 const AD_HOST_PATTERNS = [
   // SoundCloud's own audio/promoted-content ad endpoints
   '*://api-v2.soundcloud.com/audio-ads*',
@@ -39,8 +44,9 @@ const AD_HOST_PATTERNS = [
   '*://www.redditstatic.com/ads/*'
 ];
 
-function enableAdBlocking(ses) {
-  ses.webRequest.onBeforeRequest({ urls: AD_HOST_PATTERNS }, (_details, callback) => {
+function enableAdBlocking(ses, { debug = false } = {}) {
+  ses.webRequest.onBeforeRequest({ urls: AD_HOST_PATTERNS }, (details, callback) => {
+    if (debug) console.log('[adblock]', details.url);
     callback({ cancel: true });
   });
 }
