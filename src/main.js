@@ -5,6 +5,11 @@ const { enableAdBlocking, AD_HIDING_CSS } = require('./adblock');
 
 let mainWindow;
 
+// Electron ships with Chromium's hardware media key handling off, so headphone
+// buttons / keyboard play-pause keys never reach the page's Media Session.
+// Must be set before the app is ready.
+app.commandLine.appendSwitch('enable-features', 'HardwareMediaKeyHandling,MediaSessionService');
+
 function createWindow() {
   const scSession = session.fromPartition('persist:soundcloud');
   enableAdBlocking(scSession, { debug: !!process.env.SC_DEBUG_NET });
