@@ -7,7 +7,7 @@
   "scripts": {
     "start": "electron .",
     "dist": "electron-builder",
-    "package": "electron-packager . SoundCloud --platform=win32 --arch=x64 --out=release --overwrite"
+    "package": "electron-packager . SoundCloud --platform=win32 --arch=x64 --out=release --icon=assets/icon.ico --overwrite"
   },
   "author": "",
   "license": "MIT",
