@@ -12,6 +12,12 @@ app.commandLine.appendSwitch('enable-features', 'HardwareMediaKeyHandling,MediaS
 
 function createWindow() {
   const scSession = session.fromPartition('persist:soundcloud');
+  // Electron's default UA carries "Electron/x" and the app name tokens, which
+  // anti-bot systems read as an automated client and answer with slider
+  // challenges (e.g. when adding a track to a playlist). Report as plain Chromium.
+  const cleanUA = scSession.getUserAgent()
+    .replace(/\s(Electron|soundcloud)\/\S+/gi, '');
+  scSession.setUserAgent(cleanUA);
   enableAdBlocking(scSession, { debug: !!process.env.SC_DEBUG_NET });
 
   mainWindow = new BrowserWindow({
@@ -31,6 +37,7 @@ function createWindow() {
     mainWindow.webContents.insertCSS(AD_HIDING_CSS);
   });
 
+  mainWindow.webContents.setUserAgent(cleanUA);
   mainWindow.loadURL('https://soundcloud.com');
 
   mainWindow.on('closed', () => {

@@ -4,6 +4,7 @@ const { DISCORD_CLIENT_ID } = require('./config');
 let rpc = null;
 let ready = false;
 let lastState = null;
+let lastSent = null; // { key, start } of the activity currently shown
 
 function connectRpc() {
   if (!DISCORD_CLIENT_ID || DISCORD_CLIENT_ID.startsWith('PASTE_')) {
@@ -21,6 +22,7 @@ function connectRpc() {
 
   rpc.on('disconnected', () => {
     ready = false;
+    lastSent = null;
   });
 
   rpc.login().catch((err) => {
@@ -34,12 +36,22 @@ function updatePresence(state) {
 
   const { title, artist, artworkUrl, currentTime, duration, isPlaying } = state;
   if (!title || !isPlaying) {
+    lastSent = null;
     rpc.user?.clearActivity().catch(() => {});
     return;
   }
 
   const now = Date.now();
   const startTimestamp = now - Math.floor(currentTime * 1000);
+
+  // The page reports progress every second; Discord rate-limits activity
+  // updates (~1 per 15s) and drops the rest, so only resend when the track
+  // changes or the position jumps (seek), not on normal playback ticks.
+  const key = `${title}|${artist}|${duration}`;
+  if (lastSent && lastSent.key === key && Math.abs(lastSent.start - startTimestamp) < 3000) {
+    return;
+  }
+  lastSent = { key, start: startTimestamp };
   const endTimestamp = duration ? startTimestamp + Math.floor(duration * 1000) : undefined;
 
   rpc.user?.setActivity({
@@ -53,13 +65,17 @@ function updatePresence(state) {
     startTimestamp: endTimestamp ? startTimestamp : undefined,
     endTimestamp,
     instance: false
+  }).then(() => {
+    console.log('[discord-rpc] activity set:', title);
   }).catch((err) => {
+    lastSent = null;
     console.error('[discord-rpc] setActivity failed:', err.message);
   });
 }
 
 function clearPresence() {
   lastState = null;
+  lastSent = null;
   if (rpc && ready) {
     rpc.user?.clearActivity().catch(() => {});
   }
